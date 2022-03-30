@@ -1,25 +1,89 @@
 % Define document class
-\documentclass[twocolumn]{aastex631}
+\documentclass[modern]{aastex631}
 
 % Filler text
+\usepackage{acro}
 \usepackage{blindtext}
+
+\DeclareAcronym{KDE}{
+    short = {KDE},
+    long = {kernel density estimate}
+}
+
+\DeclareMathOperator{\var}{Var}
 
 % Begin!
 \begin{document}
 
 % Title
-\title{An open source scientific article}
+\title{A Note About Marginalizing Over Gaussian Populations With KDE Likelihood Representations}
 
 % Author list
-\author[0000-0000-0000-0000]{First Author}
+\author[0000-0003-1540-8562]{Will M. Farr}
 
 % Abstract with filler text
 \begin{abstract}
-    \blindtext
+    I work through the marginalization over parameters whose population is
+    Gaussian using a \ac{KDE} approximation to the likelihood function.  The
+    result is an analytic \ac{KDE} representation of the marginal likelihood for
+    the Gaussian population parameters. 
 \end{abstract}
 
 % Main body with filler text
-\section{Introduction}
-\Blindtext[4]
+\section{Marginalization}
+
+Suppose we are conducting a population analysis with a Gaussian population
+\citep[e.g.][]{Isi2019,Miller2020}.  The hierarchical posterior for the unknown
+parameter $x_i$ with the Gaussian population from each of the events and the
+population parameters $\mu$ and $\sigma$ is 
+\begin{equation}
+    \label{eq:full-posterior}
+    p\left( \left\{ x_i \right\}, \mu, \sigma \mid \left\{ d_i \right\} \right) \propto p\left( \mu, \sigma \right) \prod_{i=1}^N p\left( d_i \mid x_i \right) p\left( x_i \mid \mu, \sigma \right)
+\end{equation}
+where $p\left( \mu, \sigma \right)$ is the prior we impose on the population
+parameters, and $d_i$ is the data for each observation.  The population is
+assumed to be Gaussian with mean $\mu$ and standard deviation $\sigma$:
+\begin{equation}
+    p\left( x \mid \mu, \sigma \right) = N\left( x \mid \mu, \sigma \right).
+\end{equation}
+
+In problems of interest, the likelihood function is often not simple to write
+down, and does not take a straightforward analytic form.  In such situations, we
+usually draw \emph{samples} from the likelihood (or a posterior which is the
+likelihood times some simple prior) for each event.  Let there be $j = 1,
+\ldots, M_i$ samples $x_{ij}$ from (a density proportional to) the likelihood
+(i.e.\ from a posterior with a flat prior):
+\begin{equation}
+    x_{ij} \sim p\left( d \mid x_i \right).
+\end{equation}
+A useful representation of the likelihood function (up to a proportionality
+constant that we usually ignore---unless we are computing the Bayesian evidence)
+then is a \ac{KDE} with a Gaussian kernel over the samples from the likelihood
+\begin{equation}
+    p\left( d \mid x_i \right) \simeq \frac{1}{M_i} \sum_{j} N\left( x_i \mid x_{ij}, \sigma_i \right)
+\end{equation}
+where $\sigma_i$ is a reasonable \emph{bandwidth} for the \ac{KDE}\footnote{When
+in doubt, I usually follow \citet{Scott1992}, with 
+\begin{equation}
+    \sigma_i^2 = \frac{\var x_{ij}}{M_i^{2/5}}.
+\end{equation}
+}.
+
+Because we can do Gaussian integrals (though the discussion here is for a
+one-dimensional parameter $x$, the same trick works is multiple dimensions;
+\citet{Hogg2020} is helpful here), we can analytically integrate out the true
+parameter values $x_i$ from the posterior in Eq.\ \eqref{eq:full-posterior}
+using the \ac{KDE} approximation to the likelihood. The result is 
+\begin{equation}
+    p\left( \mu, \sigma \mid \left\{ d_i \right\} \right) \propto p\left( \mu, \sigma \right) \prod_{i=1}^N \frac{1}{M_i} \sum_{j=1}^{M_i} N\left( x_{ij} \mid \mu, \sqrt{\sigma_i^2 + \sigma^2} \right)
+\end{equation}
+In this special case of Gaussian populations and Gaussian \ac{KDE}
+approximations to the likelihood function, the above expression is considerably
+more robust to differences in scale between the population and measurement
+(i.e.\ $\sigma_i \ll \sigma$ or $\sigma \ll \sigma_i$) than the usual
+Monte-Carlo approximation to the integral of the likelihood
+\citep[e.g.][]{Miller2020}.
+
+\bibliography{bib}
 
 \end{document}
